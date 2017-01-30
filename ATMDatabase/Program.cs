@@ -132,6 +132,9 @@ namespace ATMDatabase
                     case 3:
                         MakeWithdrawal(userinstance);
                         break;
+                    case 4:
+                        WelcomeScreen(db);
+                        break;
                     default:
                         break;
                 }

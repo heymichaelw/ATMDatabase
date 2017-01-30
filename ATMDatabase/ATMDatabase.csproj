@@ -73,6 +73,10 @@
     <Compile Include="Migrations\201701292046397_AddedWithdrawal.Designer.cs">
       <DependentUpon>201701292046397_AddedWithdrawal.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201701301707531_EnableLogOut.cs" />
+    <Compile Include="Migrations\201701301707531_EnableLogOut.Designer.cs">
+      <DependentUpon>201701301707531_EnableLogOut.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models\Deposit.cs" />
     <Compile Include="Migrations\201701271535201_InitialSetup.cs" />
     <Compile Include="Migrations\201701271535201_InitialSetup.Designer.cs">
@@ -113,6 +117,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201701292046397_AddedWithdrawal.resx">
       <DependentUpon>201701292046397_AddedWithdrawal.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701301707531_EnableLogOut.resx">
+      <DependentUpon>201701301707531_EnableLogOut.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
