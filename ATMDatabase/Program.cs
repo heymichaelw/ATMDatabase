@@ -9,6 +9,7 @@ namespace ATMDatabase
     class Program
     {
         public static bool loggedIn = false;
+        public static List<string> userlist = new List<string>();
 
         static void Main(string[] args)
         {
@@ -18,10 +19,10 @@ namespace ATMDatabase
             }
         }
 
-        private static void MakeWithdrawal(User userinstance)
+        private static void MakeWithdrawal(User userinstance, ATMContext db)
         {
-            using (var db = new ATMContext())
-            {
+       
+            
                 double amount = double.Parse(Read("How much would you like to withdraw?"));
 
                 if (amount < userinstance.Balance)
@@ -45,7 +46,17 @@ namespace ATMDatabase
                     Console.WriteLine("Sorry, you do not have enough in your account!");
                     Environment.Exit(0);
                 }
-            }
+                Console.WriteLine("Would you like to make another withdrawal? [Y/N]");
+                char selection = char.ToUpper(char.Parse(Read("> ")));
+                if (selection == 'Y')
+                {
+                    MakeWithdrawal(userinstance, db);
+                }
+                else
+                {
+                    OptionScreen(userinstance, db);
+                }
+            
         }
 
         private static void WelcomeScreen(ATMContext db)
@@ -72,10 +83,10 @@ namespace ATMDatabase
             }
         }
 
-        private static void MakeDeposit(User userinstance)
+        private static void MakeDeposit(User userinstance, ATMContext db)
         {
-            using (var db = new ATMContext())
-            {
+            
+            
                 double amount = double.Parse(Read("How much would you like to deposit?"));
                 double newbalance = amount + userinstance.Balance;
 
@@ -90,66 +101,125 @@ namespace ATMDatabase
 
                 db.Deposits.Add(newDeposit);
                 db.SaveChanges();
-            };
-           
+               
+                Console.WriteLine("Would you like to make another deposit? (Y/N)");
+                char selection = char.ToUpper(char.Parse(Read("> ")));
+                if(selection == 'Y')
+                {
+                    MakeDeposit(userinstance, db);
+                }
+                else
+                {
+                    OptionScreen(userinstance, db);
+                }
+                db.SaveChanges();
+            
+
         }
 
-        private static void GetBalance(User userinstance)
+        private static void GetBalance(User userinstance, ATMContext db)
         {
-            Console.WriteLine($"{userinstance.Balance}");
+            
+            
+                Console.WriteLine($"{userinstance.Balance}");
+                Console.WriteLine("Would you like to perform another action? [Y/N]");
+                char selection = char.ToUpper(char.Parse(Read("> ")));
+                if (selection == 'Y')
+                {
+                    Console.WriteLine("What would you like to do?");
+                    Console.WriteLine(" 1. View Your Balance");
+                    Console.WriteLine(" 2. Make a Deposit");
+                    Console.WriteLine(" 3. Make a Withdrawal");
+                    Console.WriteLine(" 4. Log Out");
+                    int choice = int.Parse(Read("> "));
+
+                    switch (choice)
+                    {
+                        case 1:
+                            GetBalance(userinstance, db);
+                            break;
+                        case 2:
+                            MakeDeposit(userinstance, db);
+                            break;
+                        case 3:
+                            MakeWithdrawal(userinstance, db);
+                            break;
+                        case 4:
+                            WelcomeScreen(db);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    Environment.Exit(0);
+                }
+            
         }
 
         private static void SignIn(ATMContext db)
         {
+
             Console.WriteLine("Please enter your user name.");
 
             var idchoice = (Read("> "));
-            var userinstance = db.Users.Where(u => u.Name == idchoice).First();
-            Console.WriteLine("Please enter your password.");
-            var userpass = Console.ReadLine();
-
-            if (userpass == userinstance.Password)
+            foreach (User user in db.Users)
             {
-                Console.WriteLine("Logged in!");
-                loggedIn = true;
-                Console.ReadLine();
-                Console.Clear();
-                Console.WriteLine("What would you like to do?");
-                Console.WriteLine(" 1. View Your Balance");
-                Console.WriteLine(" 2. Make a Deposit");
-                Console.WriteLine(" 3. Make a Withdrawal");
-                Console.WriteLine(" 4. Log Out");
-                int choice = int.Parse(Read("> "));
+                userlist.Add(user.Name);
+            }
+            if (userlist.Contains(idchoice))
 
-                switch (choice)
+            {
+                var userinstance = db.Users.Where(u => u.Name == idchoice).First();
+                Console.WriteLine("Please enter your password.");
+                var userpass = Console.ReadLine();
+
+                if (userpass == userinstance.Password)
                 {
-                    case 1:
-                        GetBalance(userinstance);
-                        break;
-                    case 2:
-                        MakeDeposit(userinstance);
-                        break;
-                    case 3:
-                        MakeWithdrawal(userinstance);
-                        break;
-                    case 4:
-                        WelcomeScreen(db);
-                        break;
-                    default:
-                        break;
+                    Console.WriteLine("Logged in!");
+                    loggedIn = true;
+                    Console.ReadLine();
+                    Console.Clear();
+                    Console.WriteLine("What would you like to do?");
+                    Console.WriteLine(" 1. View Your Balance");
+                    Console.WriteLine(" 2. Make a Deposit");
+                    Console.WriteLine(" 3. Make a Withdrawal");
+                    Console.WriteLine(" 4. Log Out");
+                    int choice = int.Parse(Read("> "));
+
+                    switch (choice)
+                    {
+                        case 1:
+                            GetBalance(userinstance, db);
+                            break;
+                        case 2:
+                            MakeDeposit(userinstance, db);
+                            break;
+                        case 3:
+                            MakeWithdrawal(userinstance, db);
+                            break;
+                        case 4:
+                            WelcomeScreen(db);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("That is incorrect.");
                 }
             }
             else
             {
-                Console.WriteLine("That is incorrect.");
+                Console.WriteLine("That user does not exist!");
+                SignIn(db);
             }
         }
 
         private static void CreateUser(ATMContext db)
         {
-            var allusers = db.Users.Count();
-            Console.WriteLine($"{allusers} users in database.");
-
             var name = Read("Name?");
             var address = Read("Address?");
             var password = Read("Password?");
@@ -161,9 +231,51 @@ namespace ATMDatabase
                 Password = password,
                 Balance = 0
             };
-
             db.Users.Add(newuser);
             db.SaveChanges();
+            Console.WriteLine("Would you like to create another user? [Y/N]");
+            char selection = char.Parse(Read("> "));
+            if (selection == 'Y')
+            {
+                CreateUser(db);
+            }
+            else
+            {
+                WelcomeScreen(db);
+            }
+            
+            db.SaveChanges();
+        }
+
+        private static void OptionScreen(User userinstance, ATMContext db)
+        {
+            
+            
+                Console.WriteLine("What would you like to do?");
+                Console.WriteLine(" 1. View Your Balance");
+                Console.WriteLine(" 2. Make a Deposit");
+                Console.WriteLine(" 3. Make a Withdrawal");
+                Console.WriteLine(" 4. Log Out");
+                int choice = int.Parse(Read("> "));
+
+                switch (choice)
+                {
+                    case 1:
+                        GetBalance(userinstance, db);
+                        break;
+                    case 2:
+                        MakeDeposit(userinstance, db);
+                        break;
+                    case 3:
+                        MakeWithdrawal(userinstance, db);
+                        break;
+                    case 4:
+                        WelcomeScreen(db);
+                        break;
+                    default:
+                        break;
+                }
+            
         }
 
         static string Read(string input)
